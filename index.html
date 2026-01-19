@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>特別支援・中学生向けグラフドリル</title>
+    <title>グラフメーカー</title>
     <!-- Tailwind CSS (スタイリング用) -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Google Fonts (BIZ UDGothic) -->
@@ -15,7 +15,7 @@
         }
         /* 印刷時の設定 */
         @media print {
-            @page { margin: 12mm; } /* 余白を少し詰める */
+            @page { margin: 12mm; }
             body { background: white; color: black; }
             .no-print { display: none !important; }
             .print-block { display: block !important; }
@@ -129,7 +129,7 @@
             config: {
                 theme: 'sports',
                 itemCount: 5,
-                questionCount: 4, // デフォルトを4問に変更
+                questionCount: 4, 
                 selectedTypes: ['read', 'max', 'min', 'sum_two', 'diff', 'cond_more', 'cond_less'],
                 showTable: true,
             },
@@ -218,7 +218,8 @@
                         const itemSumA = selectedItems[idxA];
                         const itemSumB = selectedItems[idxB];
                         q = {
-                            text: `「${itemSumA.name}」と「${itemSumB.name}」を 合わせると いくつになりますか。`,
+                            // 修正: 単位を使って「何人」「何個」などに変更
+                            text: `「${itemSumA.name}」と「${itemSumB.name}」を 合わせると 何${unit}になりますか。`,
                             answer: `${itemSumA.value + itemSumB.value}${unit}`
                         };
                         break;
@@ -230,12 +231,13 @@
                         const itemB = selectedItems[idx2];
                         if (itemA.value >= itemB.value) {
                             q = {
-                                text: `「${itemA.name}」は、「${itemB.name}」より いくつ 多いですか。`,
+                                // 修正: 単位を使って「何人」「何個」などに変更
+                                text: `「${itemA.name}」は、「${itemB.name}」より 何${unit} 多いですか。`,
                                 answer: `${itemA.value - itemB.value}${unit}`
                             };
                         } else {
                             q = {
-                                text: `「${itemB.name}」は、「${itemA.name}」より いくつ 多いですか。`,
+                                text: `「${itemB.name}」は、「${itemA.name}」より 何${unit} 多いですか。`,
                                 answer: `${itemB.value - itemA.value}${unit}`
                             };
                         }
@@ -456,9 +458,10 @@
                 </div>
             `).join('');
 
+            // 修正: グラフの下部にpaddingを追加して文字重なりを防止 (pb-10を追加)
             const graphHtml = `
                 <div class="pl-2 ${state.config.showTable ? 'w-full md:w-2/3 print-w-2-3' : 'w-full mx-auto max-w-2xl'}">
-                    <div class="relative border-l border-b border-gray-800 h-64 w-full mt-4 box-border">
+                    <div class="relative border-l border-b border-gray-800 h-64 w-full mt-4 box-border mb-8 pb-4">
                         ${gridLines}
                         <div class="absolute inset-0 flex justify-around px-4 items-end">
                             ${bars}
@@ -468,9 +471,10 @@
             `;
 
             // 問題のHTML
+            // 修正: フォントサイズを text-lg から text-base (12pt相当) に変更
             const questionsHtml = questions.map((q, idx) => `
                 <div class="flex flex-col mb-4">
-                    <div class="text-lg mb-1 flex items-start leading-relaxed">
+                    <div class="text-base mb-1 flex items-start leading-relaxed">
                         <span class="font-bold mr-3 whitespace-nowrap">問${idx + 1}.</span>
                         <span>${q.text}</span>
                     </div>
@@ -510,7 +514,7 @@
                     <!-- 印刷用紙エリア -->
                     <div class="max-w-[210mm] mx-auto bg-white shadow-xl print-shadow-none print-w-full p-10 min-h-[297mm] text-black">
                         
-                        <!-- ヘッダー (下線削除、マージン縮小) -->
+                        <!-- ヘッダー -->
                         <div class="flex justify-between items-end mb-4 pb-2">
                             <h1 class="text-lg font-bold tracking-wider">${THEMES[state.config.theme].label}</h1>
                             <div class="border-b border-gray-400 w-48 pb-1 px-2 text-gray-500 text-sm flex items-end justify-between">
@@ -519,22 +523,20 @@
                             </div>
                         </div>
 
-                        <!-- 表とグラフ (マージン縮小) -->
+                        <!-- 表とグラフ -->
                         <div class="flex gap-6 mb-6 print-flex-row ${state.config.showTable ? 'flex-col md:flex-row' : 'flex-col'}">
                             ${tableHtml}
                             ${graphHtml}
                         </div>
 
-                        <!-- 問題エリア (点線削除、マージン縮小、行間縮小) -->
+                        <!-- 問題エリア -->
                         <div class="mt-6 pt-2">
                             <div class="space-y-4">
                                 ${questionsHtml}
                             </div>
                         </div>
                         
-                        <div class="mt-8 text-center text-xs text-gray-400 print-block">
-                            Drill ID: ${id}
-                        </div>
+                        <!-- Drill ID 削除 -->
                     </div>
                 </div>
             `;
