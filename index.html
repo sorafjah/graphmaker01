@@ -15,7 +15,7 @@
         }
         /* 印刷時の設定 */
         @media print {
-            @page { margin: 15mm; }
+            @page { margin: 12mm; } /* 余白を少し詰める */
             body { background: white; color: black; }
             .no-print { display: none !important; }
             .print-block { display: block !important; }
@@ -56,66 +56,69 @@
                 label: '好きなメニュー',
                 unit: '人',
                 items: [
-                    { name: 'カレー', color: 'bg-gray-400' },
-                    { name: '唐揚げ', color: 'bg-gray-600' },
-                    { name: 'ハンバーグ', color: 'bg-gray-500' },
-                    { name: 'ラーメン', color: 'bg-gray-300' },
-                    { name: 'パスタ', color: 'bg-gray-700' },
-                    { name: '焼き魚', color: 'bg-gray-200' },
-                    { name: 'うどん', color: 'bg-gray-400' },
-                    { name: 'オムライス', color: 'bg-gray-500' },
+                    { name: 'カレー' },
+                    { name: '唐揚げ' },
+                    { name: 'ハンバーグ' },
+                    { name: 'ラーメン' },
+                    { name: 'パスタ' },
+                    { name: '焼き魚' },
+                    { name: 'うどん' },
+                    { name: 'オムライス' },
                 ]
             },
             sports: {
                 label: '好きなスポーツ',
                 unit: '人',
                 items: [
-                    { name: 'サッカー', color: 'bg-gray-400' },
-                    { name: '野球', color: 'bg-gray-600' },
-                    { name: '水泳', color: 'bg-gray-300' },
-                    { name: 'バスケ', color: 'bg-gray-700' },
-                    { name: 'テニス', color: 'bg-gray-500' },
-                    { name: 'ダンス', color: 'bg-gray-200' },
-                    { name: '卓球', color: 'bg-gray-400' },
-                    { name: 'バレー', color: 'bg-gray-600' },
+                    { name: 'サッカー' },
+                    { name: '野球' },
+                    { name: '水泳' },
+                    { name: 'バスケ' },
+                    { name: 'テニス' },
+                    { name: 'ダンス' },
+                    { name: '卓球' },
+                    { name: 'バレー' },
                 ]
             },
             color: {
                 label: '好きな色',
                 unit: '人',
                 items: [
-                    { name: '赤', color: 'bg-gray-500' },
-                    { name: '青', color: 'bg-gray-400' },
-                    { name: '黄', color: 'bg-gray-300' },
-                    { name: '緑', color: 'bg-gray-600' },
-                    { name: '黒', color: 'bg-gray-800' },
-                    { name: '白', color: 'bg-gray-100 border border-gray-400' },
-                    { name: 'ピンク', color: 'bg-gray-200' },
-                    { name: '紫', color: 'bg-gray-700' },
+                    { name: '赤' },
+                    { name: '青' },
+                    { name: '黄' },
+                    { name: '緑' },
+                    { name: '黒' },
+                    { name: '白' },
+                    { name: 'ピンク' },
+                    { name: '紫' },
                 ]
             },
             animal: {
                 label: '好きな動物',
                 unit: '人',
                 items: [
-                    { name: '犬', color: 'bg-gray-400' },
-                    { name: '猫', color: 'bg-gray-600' },
-                    { name: 'うさぎ', color: 'bg-gray-300' },
-                    { name: 'ハムスター', color: 'bg-gray-500' },
-                    { name: 'パンダ', color: 'bg-gray-800' },
-                    { name: 'ペンギン', color: 'bg-gray-700' },
-                    { name: 'コアラ', color: 'bg-gray-200' },
-                    { name: 'ライオン', color: 'bg-gray-500' },
+                    { name: '犬' },
+                    { name: '猫' },
+                    { name: 'うさぎ' },
+                    { name: 'ハムスター' },
+                    { name: 'パンダ' },
+                    { name: 'ペンギン' },
+                    { name: 'コアラ' },
+                    { name: 'ライオン' },
                 ]
             }
         };
 
+        // 問題タイプを細分化
         const QUESTION_TYPES = {
             read: { id: 'read', label: '表やグラフを読む' },
-            maxmin: { id: 'maxmin', label: '一番多い・少ない' },
+            max: { id: 'max', label: '一番多い' },
+            min: { id: 'min', label: '一番少ない' },
             sum_two: { id: 'sum_two', label: '2つを合わせる' },
             diff: { id: 'diff', label: 'ちがいを答える' },
-            condition: { id: 'condition', label: '〇〇以上・以下' },
+            cond_more: { id: 'cond_more', label: '〇〇以上' },
+            cond_less: { id: 'cond_less', label: '〇〇以下' },
         };
 
         const MAX_SCALE = 15;
@@ -126,8 +129,8 @@
             config: {
                 theme: 'sports',
                 itemCount: 5,
-                questionCount: 6,
-                selectedTypes: ['read', 'maxmin', 'sum_two', 'diff', 'condition'],
+                questionCount: 4, // デフォルトを4問に変更
+                selectedTypes: ['read', 'max', 'min', 'sum_two', 'diff', 'cond_more', 'cond_less'],
                 showTable: true,
             },
             drillData: {
@@ -158,15 +161,15 @@
             const minItem = sortedData[sortedData.length - 1];
 
             // 2. 問題の生成
-            // タイププールを作成（網羅ロジック）
             let typePool = [];
             const availableTypes = state.config.selectedTypes;
 
-            if (availableTypes.includes('read')) typePool.push('read');
-            if (availableTypes.includes('sum_two')) typePool.push('sum_two');
-            if (availableTypes.includes('diff')) typePool.push('diff');
-            if (availableTypes.includes('maxmin')) { typePool.push('max'); typePool.push('min'); }
-            if (availableTypes.includes('condition')) { typePool.push('cond_more'); typePool.push('cond_less'); }
+            // 選択されたタイプをそのままプールに入れる
+            if (availableTypes.length > 0) {
+                typePool = [...availableTypes];
+            } else {
+                typePool = ['read']; // セーフティ
+            }
 
             // プールをシャッフル
             typePool.sort(() => 0.5 - Math.random());
@@ -177,22 +180,17 @@
                 typePool.unshift('read');
             }
 
-            // 問題数に合わせてリスト調整
-            let finalQuestionTypes = [...typePool];
+            // 問題数に合わせてリスト調整（ループさせて埋める）
+            let finalQuestionTypes = [];
+            let poolIndex = 0;
+            
             while (finalQuestionTypes.length < state.config.questionCount) {
-                const supplementPool = [];
-                if (availableTypes.includes('read')) supplementPool.push('read');
-                if (availableTypes.includes('sum_two')) supplementPool.push('sum_two');
-                if (availableTypes.includes('diff')) supplementPool.push('diff');
-                if (availableTypes.includes('maxmin')) supplementPool.push(Math.random() > 0.5 ? 'max' : 'min');
-                if (availableTypes.includes('condition')) supplementPool.push(Math.random() > 0.5 ? 'cond_more' : 'cond_less');
-                
-                // 設定で何も選ばれていない場合の防御策（通常ありえないが）
-                if (supplementPool.length === 0) break;
-
-                finalQuestionTypes.push(supplementPool[Math.floor(Math.random() * supplementPool.length)]);
+                if (typePool.length === 0) break;
+                finalQuestionTypes.push(typePool[poolIndex]);
+                poolIndex = (poolIndex + 1) % typePool.length;
+                // 一周したら再度シャッフルしてランダム性を出す
+                if (poolIndex === 0) typePool.sort(() => 0.5 - Math.random());
             }
-            finalQuestionTypes = finalQuestionTypes.slice(0, state.config.questionCount);
 
             // 問題文作成
             let generatedQuestions = [];
@@ -403,26 +401,26 @@
             if (state.config.showTable) {
                 const rows = items.map(item => `
                     <tr>
-                        <td class="border border-gray-800 p-3">${item.name}</td>
-                        <td class="border border-gray-800 p-3">${item.value}</td>
+                        <td class="border border-gray-800 p-2">${item.name}</td>
+                        <td class="border border-gray-800 p-2">${item.value}</td>
                     </tr>
                 `).join('');
                 const total = items.reduce((a, b) => a + b.value, 0);
                 
                 tableHtml = `
                     <div class="w-full md:w-1/3 print-w-1-3">
-                        <table class="w-full border-collapse border border-gray-800 text-center text-xl">
+                        <table class="w-full border-collapse border border-gray-800 text-center text-lg">
                             <thead class="bg-gray-100 print-bg-gray-100">
                                 <tr>
-                                    <th class="border border-gray-800 p-3 w-1/2">項目</th>
-                                    <th class="border border-gray-800 p-3 w-1/2">かず</th>
+                                    <th class="border border-gray-800 p-2 w-1/2">項目</th>
+                                    <th class="border border-gray-800 p-2 w-1/2">かず</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 ${rows}
                                 <tr class="border-t-2 border-gray-800">
-                                    <td class="border border-gray-800 p-3 bg-gray-50 print-bg-gray-50 font-bold">合計</td>
-                                    <td class="border border-gray-800 p-3 font-bold">${total}</td>
+                                    <td class="border border-gray-800 p-2 bg-gray-50 print-bg-gray-50 font-bold">合計</td>
+                                    <td class="border border-gray-800 p-2 font-bold">${total}</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -448,11 +446,11 @@
                 `;
             }).join('');
 
-            // 棒グラフ
+            // 棒グラフ（薄いグレーで統一）
             const bars = items.map(item => `
                 <div class="relative w-12 h-full flex flex-col justify-end">
-                    <div class="w-full border border-gray-800 transition-all ${item.color} print-bg-gray-200 print-border-gray-800" style="height: ${(item.value / MAX_SCALE) * 100}%"></div>
-                    <div class="absolute -bottom-10 w-24 left-1/2 -translate-x-1/2 text-center text-sm font-bold leading-tight mt-2">
+                    <div class="w-full border border-gray-800 transition-all bg-gray-200 print-bg-gray-200 print-border-gray-800" style="height: ${(item.value / MAX_SCALE) * 100}%"></div>
+                    <div class="absolute -bottom-10 w-24 left-1/2 -translate-x-1/2 text-center text-sm font-bold leading-tight mt-1">
                         ${item.name}
                     </div>
                 </div>
@@ -460,9 +458,9 @@
 
             const graphHtml = `
                 <div class="pl-2 ${state.config.showTable ? 'w-full md:w-2/3 print-w-2-3' : 'w-full mx-auto max-w-2xl'}">
-                    <div class="relative border-l border-b border-gray-800 h-80 w-full mt-6 box-border">
+                    <div class="relative border-l border-b border-gray-800 h-64 w-full mt-4 box-border">
                         ${gridLines}
-                        <div class="absolute inset-0 flex justify-around px-8 items-end">
+                        <div class="absolute inset-0 flex justify-around px-4 items-end">
                             ${bars}
                         </div>
                     </div>
@@ -471,15 +469,15 @@
 
             // 問題のHTML
             const questionsHtml = questions.map((q, idx) => `
-                <div class="flex flex-col">
-                    <div class="text-xl mb-3 flex items-start leading-relaxed">
+                <div class="flex flex-col mb-4">
+                    <div class="text-lg mb-1 flex items-start leading-relaxed">
                         <span class="font-bold mr-3 whitespace-nowrap">問${idx + 1}.</span>
                         <span>${q.text}</span>
                     </div>
                     <div class="flex justify-end pr-4">
                         <div class="flex items-end gap-2 w-full max-w-xs">
-                            <div class="border-b-2 border-gray-800 w-full h-12 relative flex items-center justify-center bg-gray-50">
-                                ${state.showAns ? `<span class="text-xl text-gray-900 font-bold">${q.answer}</span>` : ''}
+                            <div class="border-b-2 border-gray-800 w-full h-10 relative flex items-center justify-center bg-gray-50">
+                                ${state.showAns ? `<span class="text-lg text-gray-900 font-bold">${q.answer}</span>` : ''}
                             </div>
                         </div>
                     </div>
@@ -512,28 +510,29 @@
                     <!-- 印刷用紙エリア -->
                     <div class="max-w-[210mm] mx-auto bg-white shadow-xl print-shadow-none print-w-full p-10 min-h-[297mm] text-black">
                         
-                        <!-- ヘッダー -->
-                        <div class="flex justify-between items-end mb-10 pb-4 border-b-2 border-gray-400">
-                            <h1 class="text-xl font-bold tracking-wider">${THEMES[state.config.theme].label}</h1>
+                        <!-- ヘッダー (下線削除、マージン縮小) -->
+                        <div class="flex justify-between items-end mb-4 pb-2">
+                            <h1 class="text-lg font-bold tracking-wider">${THEMES[state.config.theme].label}</h1>
                             <div class="border-b border-gray-400 w-48 pb-1 px-2 text-gray-500 text-sm flex items-end justify-between">
                                 <span>なまえ</span>
                                 <span class="text-black text-lg"></span>
                             </div>
                         </div>
 
-                        <div class="flex gap-8 mb-12 print-flex-row ${state.config.showTable ? 'flex-col md:flex-row' : 'flex-col'}">
+                        <!-- 表とグラフ (マージン縮小) -->
+                        <div class="flex gap-6 mb-6 print-flex-row ${state.config.showTable ? 'flex-col md:flex-row' : 'flex-col'}">
                             ${tableHtml}
                             ${graphHtml}
                         </div>
 
-                        <!-- 問題エリア -->
-                        <div class="mt-16 pt-8 border-t border-dashed border-gray-400">
-                            <div class="space-y-10">
+                        <!-- 問題エリア (点線削除、マージン縮小、行間縮小) -->
+                        <div class="mt-6 pt-2">
+                            <div class="space-y-4">
                                 ${questionsHtml}
                             </div>
                         </div>
                         
-                        <div class="mt-16 text-center text-xs text-gray-400 print-block">
+                        <div class="mt-8 text-center text-xs text-gray-400 print-block">
                             Drill ID: ${id}
                         </div>
                     </div>
