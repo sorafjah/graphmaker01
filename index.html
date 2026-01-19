@@ -1,0 +1,565 @@
+import React, { useState, useEffect } from 'react';
+import { RefreshCw, Printer, Settings, ArrowLeft, FileText, CheckSquare, Eye, EyeOff } from 'lucide-react';
+
+// --- フォント読み込み用のスタイル定義 ---
+const FontStyle = () => (
+  <style>{`
+    @import url('https://fonts.googleapis.com/css2?family=BIZ+UDGothic:wght@400;700&display=swap');
+    body {
+      font-family: 'BIZ UDGothic', sans-serif;
+    }
+  `}</style>
+);
+
+// --- 定数・設定データ ---
+
+const THEMES = {
+  lunch: {
+    label: 'すきなメニュー',
+    unit: '人',
+    items: [
+      { name: 'カレー', color: 'bg-gray-400' },
+      { name: '唐揚げ', color: 'bg-gray-600' },
+      { name: 'ハンバーグ', color: 'bg-gray-500' },
+      { name: 'ラーメン', color: 'bg-gray-300' },
+      { name: 'パスタ', color: 'bg-gray-700' },
+      { name: '焼き魚', color: 'bg-gray-200' },
+      { name: 'うどん', color: 'bg-gray-400' },
+      { name: 'オムライス', color: 'bg-gray-500' },
+    ]
+  },
+  sports: {
+    label: '好きなスポーツ',
+    unit: '人',
+    items: [
+      { name: 'サッカー', color: 'bg-gray-400' },
+      { name: '野球', color: 'bg-gray-600' },
+      { name: '水泳', color: 'bg-gray-300' },
+      { name: 'バスケ', color: 'bg-gray-700' },
+      { name: 'テニス', color: 'bg-gray-500' },
+      { name: 'ダンス', color: 'bg-gray-200' },
+      { name: '卓球', color: 'bg-gray-400' },
+      { name: 'バレー', color: 'bg-gray-600' },
+    ]
+  },
+  color: {
+    label: '好きな色',
+    unit: '人',
+    items: [
+      { name: '赤', color: 'bg-gray-500' },
+      { name: '青', color: 'bg-gray-400' },
+      { name: '黄', color: 'bg-gray-300' },
+      { name: '緑', color: 'bg-gray-600' },
+      { name: '黒', color: 'bg-gray-800' },
+      { name: '白', color: 'bg-gray-100 border border-gray-400' }, // 白は見えにくいので枠線をつける
+      { name: 'ピンク', color: 'bg-gray-200' },
+      { name: '紫', color: 'bg-gray-700' },
+    ]
+  },
+  pref: {
+    label: '修学旅行の行き先',
+    unit: '人',
+    items: [
+      { name: '京都', color: 'bg-gray-600' },
+      { name: '奈良', color: 'bg-gray-500' },
+      { name: '大阪', color: 'bg-gray-400' },
+      { name: '東京', color: 'bg-gray-700' },
+      { name: '北海道', color: 'bg-gray-300' },
+      { name: '沖縄', color: 'bg-gray-200' },
+    ]
+  }
+};
+
+// 問題タイプの定義（設定画面用）
+const QUESTION_TYPES = {
+  read: { id: 'read', label: '表やグラフを読む' },
+  maxmin: { id: 'maxmin', label: '一番多い・少ない' },
+  sum_two: { id: 'sum_two', label: '2つを合わせる' },
+  diff: { id: 'diff', label: 'ちがいを答える' },
+  condition: { id: 'condition', label: '〇〇以上・以下' },
+};
+
+const GraphDrillApp = () => {
+  const [mode, setMode] = useState('settings');
+  
+  const [config, setConfig] = useState({
+    theme: 'sports', // デフォルトをスポーツに変更
+    itemCount: 5,
+    questionCount: 6, 
+    selectedTypes: ['read', 'maxmin', 'sum_two', 'diff', 'condition'],
+    showTable: true,
+  });
+
+  const [drillData, setDrillData] = useState({
+    items: [],
+    questions: [],
+    unit: '',
+    id: 1,
+  });
+
+  const MAX_SCALE = 15;
+
+  const handleConfigChange = (key, value) => {
+    setConfig(prev => ({ ...prev, [key]: value }));
+  };
+
+  const toggleQuestionType = (typeId) => {
+    setConfig(prev => {
+      const current = prev.selectedTypes;
+      const next = current.includes(typeId)
+        ? current.filter(t => t !== typeId)
+        : [...current, typeId];
+      return { ...prev, selectedTypes: next.length === 0 ? [typeId] : next };
+    });
+  };
+
+  const generateDrill = () => {
+    const themeData = THEMES[config.theme];
+    const unit = themeData.unit;
+
+    // 数値生成
+    const shuffledItems = [...themeData.items].sort(() => 0.5 - Math.random());
+    const selectedItems = shuffledItems.slice(0, config.itemCount).map(item => ({
+      ...item,
+      value: Math.floor(Math.random() * (MAX_SCALE - 5)) + 3 
+    }));
+
+    const sortedData = [...selectedItems].sort((a, b) => b.value - a.value);
+    const maxItem = sortedData[0];
+    const minItem = sortedData[sortedData.length - 1];
+
+    // --- 出題パターンの網羅ロジック作成 ---
+    
+    // 1. 選択されたタイプから、具体的な出題候補（サブタイプ）のプールを作る
+    let typePool = [];
+    const availableTypes = config.selectedTypes;
+
+    // 読み取り（重要なので複数回入れられるように、まずは1つ）
+    if (availableTypes.includes('read')) typePool.push('read');
+    
+    // 合計
+    if (availableTypes.includes('sum_two')) typePool.push('sum_two');
+    
+    // 差
+    if (availableTypes.includes('diff')) typePool.push('diff');
+    
+    // 最大・最小（両方入れる）
+    if (availableTypes.includes('maxmin')) {
+      typePool.push('max');
+      typePool.push('min');
+    }
+    
+    // 以上・以下（両方入れる）
+    if (availableTypes.includes('condition')) {
+      typePool.push('cond_more');
+      typePool.push('cond_less');
+    }
+
+    // 2. プールをシャッフル
+    typePool.sort(() => 0.5 - Math.random());
+
+    // 3. 1問目は「読み取り」があれば優先的に先頭に持ってくる
+    if (availableTypes.includes('read')) {
+      typePool = typePool.filter(t => t !== 'read');
+      typePool.unshift('read');
+    }
+
+    // 4. 問題数に合わせてリストを調整
+    // 足りない場合は、再度ランダムな有効タイプを追加
+    // 多い場合は、先頭から必要数だけ使う
+    let finalQuestionTypes = [...typePool];
+    
+    while (finalQuestionTypes.length < config.questionCount) {
+      // 追加補充用（偏りを防ぐため、maxminなどは分解して抽選）
+      const supplementPool = [];
+      if (availableTypes.includes('read')) supplementPool.push('read');
+      if (availableTypes.includes('sum_two')) supplementPool.push('sum_two');
+      if (availableTypes.includes('diff')) supplementPool.push('diff');
+      if (availableTypes.includes('maxmin')) supplementPool.push(Math.random() > 0.5 ? 'max' : 'min');
+      if (availableTypes.includes('condition')) supplementPool.push(Math.random() > 0.5 ? 'cond_more' : 'cond_less');
+      
+      const nextType = supplementPool[Math.floor(Math.random() * supplementPool.length)];
+      finalQuestionTypes.push(nextType);
+    }
+    
+    // 多い場合はカット
+    finalQuestionTypes = finalQuestionTypes.slice(0, config.questionCount);
+
+    // 5. 問題データ生成
+    let generatedQuestions = [];
+    
+    for (let type of finalQuestionTypes) {
+      let q = {};
+      const target = selectedItems[Math.floor(Math.random() * selectedItems.length)];
+      
+      switch (type) {
+        case 'read':
+          q = {
+            text: `「${target.name}」は、何${unit} ですか。`,
+            answer: `${target.value}${unit}`
+          };
+          break;
+        case 'max':
+          q = { text: '一番 多いのは どれですか。', answer: maxItem.name };
+          break;
+        case 'min':
+          q = { text: '一番 少ないのは どれですか。', answer: minItem.name };
+          break;
+        case 'sum_two':
+          const idxA = Math.floor(Math.random() * selectedItems.length);
+          let idxB = Math.floor(Math.random() * selectedItems.length);
+          while(idxA === idxB) idxB = Math.floor(Math.random() * selectedItems.length);
+          
+          const itemSumA = selectedItems[idxA];
+          const itemSumB = selectedItems[idxB];
+
+          q = {
+            text: `「${itemSumA.name}」と「${itemSumB.name}」を 合わせると いくつになりますか。`,
+            answer: `${itemSumA.value + itemSumB.value}${unit}`
+          };
+          break;
+        case 'diff':
+          const idx1 = Math.floor(Math.random() * selectedItems.length);
+          let idx2 = Math.floor(Math.random() * selectedItems.length);
+          while(idx1 === idx2) idx2 = Math.floor(Math.random() * selectedItems.length);
+          
+          const itemA = selectedItems[idx1];
+          const itemB = selectedItems[idx2];
+          
+          if (itemA.value >= itemB.value) {
+            q = {
+              text: `「${itemA.name}」は、「${itemB.name}」より いくつ 多いですか。`,
+              answer: `${itemA.value - itemB.value}${unit}`
+            };
+          } else {
+            q = {
+              text: `「${itemB.name}」は、「${itemA.name}」より いくつ 多いですか。`,
+              answer: `${itemB.value - itemA.value}${unit}`
+            };
+          }
+          break;
+        case 'cond_more':
+          // 基準値を少し調整（全滅や全員該当を防ぐため、最小値～最大値の間で設定）
+          const minVal = minItem.value;
+          const maxVal = maxItem.value;
+          const range = Math.max(1, maxVal - minVal);
+          const thresholdMore = minVal + Math.floor(Math.random() * range); // 最小値以上、最大値未満くらいを狙う
+
+          q = {
+            text: `${thresholdMore}${unit}以上の ものは、いくつ ありますか。`,
+            answer: `${selectedItems.filter(item => item.value >= thresholdMore).length}つ`
+          };
+          break;
+        case 'cond_less':
+          const minValL = minItem.value;
+          const maxValL = maxItem.value;
+          const rangeL = Math.max(1, maxValL - minValL);
+          const thresholdLess = minValL + Math.floor(Math.random() * rangeL) + 1; // 最小値より上、最大値以下くらいを狙う
+
+          q = {
+            text: `${thresholdLess}${unit}以下の ものは、いくつ ありますか。`,
+            answer: `${selectedItems.filter(item => item.value <= thresholdLess).length}つ`
+          };
+          break;
+        default:
+          break;
+      }
+      generatedQuestions.push(q);
+    }
+
+    setDrillData({
+      items: selectedItems,
+      questions: generatedQuestions,
+      unit: unit,
+      id: Math.floor(Math.random() * 10000)
+    });
+
+    setMode('print');
+  };
+
+  // --- 設定画面 ---
+  const SettingsScreen = () => (
+    <div className="max-w-2xl mx-auto bg-white p-6 rounded-xl shadow-lg mt-8 border border-gray-200 font-sans">
+      <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2 border-b pb-2">
+        <Settings className="text-gray-600" />
+        ドリル設定
+      </h2>
+
+      <div className="mb-6">
+        <label className="block text-sm font-bold text-gray-700 mb-2">テーマ</label>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          {Object.entries(THEMES).map(([key, theme]) => (
+            <button
+              key={key}
+              onClick={() => handleConfigChange('theme', key)}
+              className={`p-3 rounded border text-left transition-all ${
+                config.theme === key 
+                  ? 'border-gray-800 bg-gray-100 ring-1 ring-gray-400 font-bold' 
+                  : 'border-gray-300 hover:bg-gray-50'
+              }`}
+            >
+              {theme.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+        <div>
+          <label className="block text-sm font-bold text-gray-700 mb-2">グラフの項目数: {config.itemCount}</label>
+          <input 
+            type="range" min="3" max="6" 
+            value={config.itemCount}
+            onChange={(e) => handleConfigChange('itemCount', parseInt(e.target.value))}
+            className="w-full h-2 bg-gray-300 rounded-lg appearance-none cursor-pointer accent-gray-600"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-bold text-gray-700 mb-2">問題数: {config.questionCount}問</label>
+          <input 
+            type="range" min="1" max="6" 
+            value={config.questionCount}
+            onChange={(e) => handleConfigChange('questionCount', parseInt(e.target.value))}
+            className="w-full h-2 bg-gray-300 rounded-lg appearance-none cursor-pointer accent-gray-600"
+          />
+          <div className="flex justify-between text-xs text-gray-500 mt-1">
+             <span>1</span><span>6</span>
+          </div>
+        </div>
+      </div>
+
+      <div className="mb-6 bg-gray-50 p-4 rounded border border-gray-200">
+        <label className="flex items-center gap-2 cursor-pointer">
+          <input 
+            type="checkbox"
+            checked={config.showTable}
+            onChange={(e) => handleConfigChange('showTable', e.target.checked)}
+            className="w-5 h-5 text-gray-600 rounded focus:ring-gray-500 border-gray-300"
+          />
+          <span className="font-bold text-gray-700">表（テーブル）を表示する</span>
+        </label>
+      </div>
+
+      <div className="mb-8">
+        <label className="block text-sm font-bold text-gray-700 mb-2">出題パターン</label>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+          {Object.values(QUESTION_TYPES).map((type) => (
+            <label key={type.id} className="flex items-center gap-3 p-2 rounded hover:bg-gray-100 cursor-pointer border border-transparent hover:border-gray-200">
+              <div 
+                onClick={() => toggleQuestionType(type.id)}
+                className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${
+                  config.selectedTypes.includes(type.id) 
+                    ? 'bg-gray-700 border-gray-700 text-white' 
+                    : 'bg-white border-gray-400'
+                }`}
+              >
+                {config.selectedTypes.includes(type.id) && <CheckSquare size={14} />}
+              </div>
+              <span className="text-gray-800 text-sm">{type.label}</span>
+            </label>
+          ))}
+        </div>
+      </div>
+
+      <button 
+        onClick={generateDrill}
+        className="w-full py-4 bg-gray-800 text-white rounded-lg font-bold text-lg hover:bg-gray-700 shadow-md transition flex items-center justify-center gap-2"
+      >
+        <FileText />
+        ドリルを作成
+      </button>
+    </div>
+  );
+
+  // --- プリント画面 ---
+  const PrintScreen = () => {
+    const [showAns, setShowAns] = useState(false);
+    
+    return (
+      <div className="min-h-screen bg-white">
+        {/* コントロールバー */}
+        <div className="sticky top-0 z-50 bg-gray-800 text-white p-4 shadow-md print:hidden mb-8">
+          <div className="max-w-4xl mx-auto flex justify-between items-center flex-wrap gap-2">
+            <button 
+              onClick={() => setMode('settings')} 
+              className="flex items-center gap-2 text-gray-300 hover:text-white transition text-sm md:text-base font-sans"
+            >
+              <ArrowLeft size={20} /> 設定
+            </button>
+            <div className="flex gap-3 font-sans">
+              <button 
+                onClick={generateDrill}
+                className="flex items-center gap-2 px-3 py-2 bg-gray-600 rounded hover:bg-gray-500 transition text-sm"
+              >
+                <RefreshCw size={16} /> 更新
+              </button>
+              <button 
+                onClick={() => setShowAns(!showAns)}
+                className="flex items-center gap-2 px-3 py-2 bg-gray-600 rounded hover:bg-gray-500 transition text-sm"
+              >
+                {showAns ? <EyeOff size={16}/> : <Eye size={16}/>}
+                {showAns ? '隠す' : '答え'}
+              </button>
+              <button 
+                onClick={() => window.print()}
+                className="flex items-center gap-2 px-4 py-2 bg-white text-gray-900 rounded hover:bg-gray-100 transition font-bold text-sm"
+              >
+                <Printer size={16} /> 印刷
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* 印刷用紙エリア */}
+        <div className="max-w-[210mm] mx-auto bg-white shadow-xl print:shadow-none print:w-full p-10 min-h-[297mm] text-black">
+          
+          {/* ヘッダー：シンプルで小さめに */}
+          <div className="flex justify-between items-end mb-10 pb-4 border-b-2 border-gray-400">
+            <h1 className="text-xl font-bold tracking-wider">{THEMES[config.theme].label}</h1>
+            <div className="border-b border-gray-400 w-48 pb-1 px-2 text-gray-500 text-sm flex items-end justify-between">
+                <span>なまえ</span>
+                <span className="text-black text-lg"></span>
+            </div>
+          </div>
+
+          <div className={`flex gap-8 mb-12 print:flex-row ${config.showTable ? 'flex-col md:flex-row' : 'flex-col'}`}>
+            
+            {/* 表 */}
+            {config.showTable && (
+              <div className="w-full md:w-1/3 print:w-1/3">
+                <table className="w-full border-collapse border border-gray-800 text-center text-xl">
+                  <thead className="bg-gray-100 print:bg-gray-100">
+                    <tr>
+                      <th className="border border-gray-800 p-3 w-1/2">項目</th>
+                      <th className="border border-gray-800 p-3 w-1/2">かず</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {drillData.items.map((item, index) => (
+                      <tr key={index}>
+                        <td className="border border-gray-800 p-3">{item.name}</td>
+                        <td className="border border-gray-800 p-3">{item.value}</td>
+                      </tr>
+                    ))}
+                    <tr className="border-t-2 border-gray-800">
+                        <td className="border border-gray-800 p-3 bg-gray-50 print:bg-gray-50 font-bold">合計</td>
+                        <td className="border border-gray-800 p-3 font-bold">
+                            {drillData.items.reduce((a, b) => a + b.value, 0)}
+                        </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            {/* グラフ */}
+            <div className={`pl-2 ${config.showTable ? 'w-full md:w-2/3 print:w-2/3' : 'w-full mx-auto max-w-2xl'}`}>
+              
+              <div className="relative border-l border-b border-gray-800 h-80 w-full mt-6 box-border">
+                
+                {/* グリッド線 */}
+                {[...Array(MAX_SCALE + 1)].map((_, i) => (
+                  <div 
+                    key={i} 
+                    className="absolute w-full border-t border-gray-300"
+                    style={{ bottom: `${(i / MAX_SCALE) * 100}%`, left: 0, right: 0 }}
+                  >
+                    {/* 数値ラベル */}
+                    <span className="absolute -left-6 -translate-y-1/2 text-sm text-gray-700">
+                      {i % 5 === 0 ? i : (i === 0 ? 0 : '')}
+                    </span>
+                    <div className={`w-2 absolute -left-2 top-0 border-t ${i % 5 === 0 ? 'border-gray-800' : 'border-gray-400'}`}></div>
+
+                    {/* 単位 */}
+                    {i === MAX_SCALE && (
+                      <span className="absolute -left-2 -top-8 text-sm font-bold">({drillData.unit})</span>
+                    )}
+                  </div>
+                ))}
+
+                {/* 棒の描画 */}
+                <div className="absolute inset-0 flex justify-around px-8 items-end">
+                   {drillData.items.map((item, index) => (
+                    <div key={index} className="relative w-12 h-full flex flex-col justify-end">
+                      <div 
+                        className={`w-full border border-gray-800 transition-all ${item.color} print:bg-gray-200 print:border-gray-800`}
+                        style={{ height: `${(item.value / MAX_SCALE) * 100}%` }}
+                      >
+                         {/* マウスオーバー表示を削除済み */}
+                      </div>
+                      
+                      {/* 項目ラベル */}
+                      <div className="absolute -bottom-10 w-24 left-1/2 -translate-x-1/2 text-center text-sm font-bold leading-tight mt-2">
+                        {item.name}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* 問題エリア */}
+          <div className="mt-16 pt-8 border-t border-dashed border-gray-400">
+            <div className="space-y-10">
+              {drillData.questions.map((q, index) => (
+                <div key={index} className="flex flex-col">
+                  <div className="text-xl mb-3 flex items-start leading-relaxed">
+                    <span className="font-bold mr-3 whitespace-nowrap">問{index + 1}.</span>
+                    <span>{q.text}</span>
+                  </div>
+                  <div className="flex justify-end pr-4">
+                    <div className="flex items-end gap-2 w-full max-w-xs">
+                      <div className="border-b-2 border-gray-800 w-full h-12 relative flex items-center justify-center bg-gray-50">
+                        {showAns && (
+                          <span className="text-xl text-gray-900 font-bold">
+                            {q.answer}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+          
+          <div className="mt-16 text-center text-xs text-gray-400 print:block">
+            Drill ID: {drillData.id}
+          </div>
+
+        </div>
+        
+        {/* 印刷用CSS */}
+        <style>{`
+          @media print {
+            @page { margin: 15mm; }
+            body { background: white; color: black; }
+            .print\\:hidden { display: none !important; }
+            .print\\:block { display: block !important; }
+            .print\\:w-full { width: 100% !important; }
+            .print\\:w-1\\/3 { width: 33% !important; }
+            .print\\:w-2\\/3 { width: 66% !important; }
+            .print\\:flex-row { flex-direction: row !important; }
+            .print\\:shadow-none { box-shadow: none !important; }
+            .print\\:bg-gray-200 { background-color: #e5e7eb !important; -webkit-print-color-adjust: exact; }
+            .print\\:bg-gray-100 { background-color: #f3f4f6 !important; -webkit-print-color-adjust: exact; }
+            .print\\:bg-gray-50 { background-color: #f9fafb !important; -webkit-print-color-adjust: exact; }
+            .print\\:border-gray-800 { border-color: #1f2937 !important; }
+          }
+        `}</style>
+      </div>
+    );
+  };
+
+  return (
+    <>
+      <FontStyle />
+      <div className="min-h-screen bg-gray-50 text-gray-900">
+        {mode === 'settings' ? <SettingsScreen /> : <PrintScreen />}
+      </div>
+    </>
+  );
+};
+
+export default GraphDrillApp;
