@@ -462,7 +462,7 @@
             const bars = items.map(item => `
                 <div class="relative w-12 h-full flex flex-col justify-end">
                     <div class="w-full border border-gray-800 transition-all bg-gray-200 print-bg-gray-200 print-border-gray-800" style="height: ${(item.value / MAX_SCALE) * 100}%"></div>
-                    <div class="absolute -bottom-10 w-24 left-1/2 -translate-x-1/2 text-center text-sm font-bold leading-tight mt-1">
+                    <div class="absolute -bottom-6 w-24 left-1/2 -translate-x-1/2 text-center text-sm font-bold leading-tight mt-1">
                         ${item.name}
                     </div>
                 </div>
@@ -482,7 +482,7 @@
             // 問題のHTML（編集可能なInputに変更）
             const questionsHtml = questions.map((q, idx) => `
                 <div class="flex flex-col mb-4">
-                    <div class="text-base mb-1 flex items-start leading-relaxed w-full">
+                    <div class="text-[12pt] mb-1 flex items-start leading-relaxed w-full">
                         <span class="font-bold mr-2 whitespace-nowrap pt-1">問${idx + 1}.</span>
                         <div class="relative flex-grow">
                             <input 
@@ -497,8 +497,8 @@
                         </div>
                     </div>
                     <div class="flex justify-end pr-4">
-                        <div class="flex items-end gap-2 w-full max-w-xs">
-                            <div class="border-b-2 border-gray-800 w-full h-10 relative flex items-center justify-center bg-gray-50">
+                        <div class="flex items-end gap-2 w-40">
+                            <div class="border-b border-gray-800 w-full h-10 relative flex items-center justify-center bg-gray-50">
                                 ${state.showAns ? `<span class="text-lg text-gray-900 font-bold">${q.answer}</span>` : ''}
                             </div>
                         </div>
