@@ -28,6 +28,15 @@
             .print-bg-gray-100 { background-color: #f3f4f6 !important; -webkit-print-color-adjust: exact; }
             .print-bg-gray-50 { background-color: #f9fafb !important; -webkit-print-color-adjust: exact; }
             .print-border-gray-800 { border-color: #1f2937 !important; }
+            
+            /* 印刷時の入力フィールド調整 */
+            input.question-input {
+                border: none !important;
+                background: transparent !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                width: 100% !important;
+            }
         }
     </style>
 </head>
@@ -47,7 +56,10 @@
             printer: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>`,
             arrowLeft: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>`,
             eye: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>`,
-            eyeOff: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>`
+            eyeOff: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>`,
+            plus: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>`,
+            minus: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line></svg>`,
+            edit: `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>`
         };
 
         // --- データ定義 ---
@@ -56,61 +68,39 @@
                 label: '好きなメニュー',
                 unit: '人',
                 items: [
-                    { name: 'カレー' },
-                    { name: '唐揚げ' },
-                    { name: 'ハンバーグ' },
-                    { name: 'ラーメン' },
-                    { name: 'パスタ' },
-                    { name: '焼き魚' },
-                    { name: 'うどん' },
-                    { name: 'オムライス' },
+                    { name: 'カレー' }, { name: '唐揚げ' }, { name: 'ハンバーグ' },
+                    { name: 'ラーメン' }, { name: 'パスタ' }, { name: '焼き魚' },
+                    { name: 'うどん' }, { name: 'オムライス' },
                 ]
             },
             sports: {
                 label: '好きなスポーツ',
                 unit: '人',
                 items: [
-                    { name: 'サッカー' },
-                    { name: '野球' },
-                    { name: '水泳' },
-                    { name: 'バスケ' },
-                    { name: 'テニス' },
-                    { name: 'ダンス' },
-                    { name: '卓球' },
-                    { name: 'バレー' },
+                    { name: 'サッカー' }, { name: '野球' }, { name: '水泳' },
+                    { name: 'バスケ' }, { name: 'テニス' }, { name: 'ダンス' },
+                    { name: '卓球' }, { name: 'バレー' },
                 ]
             },
             color: {
                 label: '好きな色',
                 unit: '人',
                 items: [
-                    { name: '赤' },
-                    { name: '青' },
-                    { name: '黄' },
-                    { name: '緑' },
-                    { name: '黒' },
-                    { name: '白' },
-                    { name: 'ピンク' },
-                    { name: '紫' },
+                    { name: '赤' }, { name: '青' }, { name: '黄' }, { name: '緑' },
+                    { name: '黒' }, { name: '白' }, { name: 'ピンク' }, { name: '紫' },
                 ]
             },
             animal: {
                 label: '好きな動物',
                 unit: '人',
                 items: [
-                    { name: '犬' },
-                    { name: '猫' },
-                    { name: 'うさぎ' },
-                    { name: 'ハムスター' },
-                    { name: 'パンダ' },
-                    { name: 'ペンギン' },
-                    { name: 'コアラ' },
-                    { name: 'ライオン' },
+                    { name: '犬' }, { name: '猫' }, { name: 'うさぎ' }, { name: 'ハムスター' },
+                    { name: 'パンダ' }, { name: 'ペンギン' }, { name: 'コアラ' }, { name: 'ライオン' },
                 ]
             }
         };
 
-        // 問題タイプを細分化
+        // 問題タイプ
         const QUESTION_TYPES = {
             read: { id: 'read', label: '表やグラフを読む' },
             max: { id: 'max', label: '一番多い' },
@@ -131,7 +121,7 @@
                 itemCount: 5,
                 questionCount: 4, 
                 selectedTypes: ['read', 'max', 'min', 'sum_two', 'diff', 'cond_more', 'cond_less'],
-                showTable: true,
+                showTable: false, // デフォルトOFFに変更
             },
             drillData: {
                 items: [],
@@ -155,7 +145,7 @@
                 value: Math.floor(Math.random() * (MAX_SCALE - 5)) + 3 // 3〜12
             }));
 
-            // ソート済みデータ（最大最小用）
+            // ソート済みデータ
             const sortedData = [...selectedItems].sort((a, b) => b.value - a.value);
             const maxItem = sortedData[0];
             const minItem = sortedData[sortedData.length - 1];
@@ -164,23 +154,19 @@
             let typePool = [];
             const availableTypes = state.config.selectedTypes;
 
-            // 選択されたタイプをそのままプールに入れる
             if (availableTypes.length > 0) {
                 typePool = [...availableTypes];
             } else {
-                typePool = ['read']; // セーフティ
+                typePool = ['read'];
             }
 
-            // プールをシャッフル
             typePool.sort(() => 0.5 - Math.random());
 
-            // 1問目は「読み取り」があれば優先
             if (availableTypes.includes('read')) {
                 typePool = typePool.filter(t => t !== 'read');
                 typePool.unshift('read');
             }
 
-            // 問題数に合わせてリスト調整（ループさせて埋める）
             let finalQuestionTypes = [];
             let poolIndex = 0;
             
@@ -188,11 +174,9 @@
                 if (typePool.length === 0) break;
                 finalQuestionTypes.push(typePool[poolIndex]);
                 poolIndex = (poolIndex + 1) % typePool.length;
-                // 一周したら再度シャッフルしてランダム性を出す
                 if (poolIndex === 0) typePool.sort(() => 0.5 - Math.random());
             }
 
-            // 問題文作成
             let generatedQuestions = [];
             for (let type of finalQuestionTypes) {
                 let q = {};
@@ -218,7 +202,6 @@
                         const itemSumA = selectedItems[idxA];
                         const itemSumB = selectedItems[idxB];
                         q = {
-                            // 修正: 単位を使って「何人」「何個」などに変更
                             text: `「${itemSumA.name}」と「${itemSumB.name}」を 合わせると 何${unit}になりますか。`,
                             answer: `${itemSumA.value + itemSumB.value}${unit}`
                         };
@@ -231,7 +214,6 @@
                         const itemB = selectedItems[idx2];
                         if (itemA.value >= itemB.value) {
                             q = {
-                                // 修正: 単位を使って「何人」「何個」などに変更
                                 text: `「${itemA.name}」は、「${itemB.name}」より 何${unit} 多いですか。`,
                                 answer: `${itemA.value - itemB.value}${unit}`
                             };
@@ -284,14 +266,29 @@
             render();
         }
 
+        // カウンターの増減
+        function updateCount(key, delta, min, max) {
+            const current = state.config[key];
+            const next = current + delta;
+            if (next >= min && next <= max) {
+                handleConfigChange(key, next);
+            }
+        }
+
         function toggleQuestionType(typeId) {
             const current = state.config.selectedTypes;
             const next = current.includes(typeId)
                 ? current.filter(t => t !== typeId)
                 : [...current, typeId];
-            // 最低1つは残す
             state.config.selectedTypes = next.length === 0 ? [typeId] : next;
             render();
+        }
+
+        // 問題文の編集
+        function updateQuestionText(index, newText) {
+            state.drillData.questions[index].text = newText;
+            // 再描画はせず、DOM要素の値はinputなのでそのまま保持されるが
+            // データ整合性のためにstateは更新しておく
         }
 
         function setMode(newMode) {
@@ -355,18 +352,32 @@
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                        <!-- グラフの項目数 (カウンターUIに変更) -->
                         <div>
-                            <label class="block text-sm font-bold text-gray-700 mb-2">グラフの項目数: ${state.config.itemCount}</label>
-                            <input type="range" min="3" max="6" value="${state.config.itemCount}" 
-                                oninput="handleConfigChange('itemCount', parseInt(this.value))"
-                                class="w-full h-2 bg-gray-300 rounded-lg appearance-none cursor-pointer accent-gray-600">
+                            <label class="block text-sm font-bold text-gray-700 mb-2">グラフの項目数</label>
+                            <div class="flex items-center gap-3">
+                                <button onclick="updateCount('itemCount', -1, 3, 6)" class="w-10 h-10 flex items-center justify-center border border-gray-300 rounded hover:bg-gray-100 text-gray-600 ${state.config.itemCount <= 3 ? 'opacity-50 cursor-not-allowed' : ''}">
+                                    ${Icons.minus}
+                                </button>
+                                <div class="text-xl font-bold w-12 text-center">${state.config.itemCount}</div>
+                                <button onclick="updateCount('itemCount', 1, 3, 6)" class="w-10 h-10 flex items-center justify-center border border-gray-300 rounded hover:bg-gray-100 text-gray-600 ${state.config.itemCount >= 6 ? 'opacity-50 cursor-not-allowed' : ''}">
+                                    ${Icons.plus}
+                                </button>
+                            </div>
                         </div>
+
+                        <!-- 問題数 (カウンターUIに変更) -->
                         <div>
-                            <label class="block text-sm font-bold text-gray-700 mb-2">問題数: ${state.config.questionCount}問</label>
-                            <input type="range" min="1" max="6" value="${state.config.questionCount}" 
-                                oninput="handleConfigChange('questionCount', parseInt(this.value))"
-                                class="w-full h-2 bg-gray-300 rounded-lg appearance-none cursor-pointer accent-gray-600">
-                             <div class="flex justify-between text-xs text-gray-500 mt-1"><span>1</span><span>6</span></div>
+                            <label class="block text-sm font-bold text-gray-700 mb-2">問題数</label>
+                            <div class="flex items-center gap-3">
+                                <button onclick="updateCount('questionCount', -1, 1, 6)" class="w-10 h-10 flex items-center justify-center border border-gray-300 rounded hover:bg-gray-100 text-gray-600 ${state.config.questionCount <= 1 ? 'opacity-50 cursor-not-allowed' : ''}">
+                                    ${Icons.minus}
+                                </button>
+                                <div class="text-xl font-bold w-12 text-center">${state.config.questionCount}</div>
+                                <button onclick="updateCount('questionCount', 1, 1, 6)" class="w-10 h-10 flex items-center justify-center border border-gray-300 rounded hover:bg-gray-100 text-gray-600 ${state.config.questionCount >= 6 ? 'opacity-50 cursor-not-allowed' : ''}">
+                                    ${Icons.plus}
+                                </button>
+                            </div>
                         </div>
                     </div>
 
@@ -381,6 +392,7 @@
 
                     <div class="mb-8">
                         <label class="block text-sm font-bold text-gray-700 mb-2">出題パターン</label>
+                        <p class="text-xs text-gray-500 mb-2">※選んだ中からランダムに出題されます</p>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
                             ${typeCheckboxes}
                         </div>
@@ -431,7 +443,6 @@
             }
 
             // グラフのHTML
-            // グリッド線
             const gridLines = Array.from({length: MAX_SCALE + 1}, (_, i) => {
                 const isMain = i % 5 === 0;
                 const label = isMain ? `<span class="absolute -left-6 -translate-y-1/2 text-sm text-gray-700">${i === 0 ? 0 : i}</span>` : '';
@@ -448,7 +459,6 @@
                 `;
             }).join('');
 
-            // 棒グラフ（薄いグレーで統一）
             const bars = items.map(item => `
                 <div class="relative w-12 h-full flex flex-col justify-end">
                     <div class="w-full border border-gray-800 transition-all bg-gray-200 print-bg-gray-200 print-border-gray-800" style="height: ${(item.value / MAX_SCALE) * 100}%"></div>
@@ -458,7 +468,6 @@
                 </div>
             `).join('');
 
-            // 修正: グラフの下部にpaddingを追加して文字重なりを防止 (pb-10を追加)
             const graphHtml = `
                 <div class="pl-2 ${state.config.showTable ? 'w-full md:w-2/3 print-w-2-3' : 'w-full mx-auto max-w-2xl'}">
                     <div class="relative border-l border-b border-gray-800 h-64 w-full mt-4 box-border mb-8 pb-4">
@@ -470,13 +479,22 @@
                 </div>
             `;
 
-            // 問題のHTML
-            // 修正: フォントサイズを text-lg から text-base (12pt相当) に変更
+            // 問題のHTML（編集可能なInputに変更）
             const questionsHtml = questions.map((q, idx) => `
                 <div class="flex flex-col mb-4">
-                    <div class="text-base mb-1 flex items-start leading-relaxed">
-                        <span class="font-bold mr-3 whitespace-nowrap">問${idx + 1}.</span>
-                        <span>${q.text}</span>
+                    <div class="text-base mb-1 flex items-start leading-relaxed w-full">
+                        <span class="font-bold mr-2 whitespace-nowrap pt-1">問${idx + 1}.</span>
+                        <div class="relative flex-grow">
+                            <input 
+                                type="text" 
+                                value="${q.text}" 
+                                oninput="updateQuestionText(${idx}, this.value)"
+                                class="question-input w-full p-1 border-b border-transparent hover:border-gray-300 focus:border-gray-800 focus:bg-white focus:outline-none transition bg-transparent"
+                            >
+                            <div class="absolute right-0 top-1 text-gray-400 pointer-events-none no-print">
+                                ${Icons.edit}
+                            </div>
+                        </div>
                     </div>
                     <div class="flex justify-end pr-4">
                         <div class="flex items-end gap-2 w-full max-w-xs">
@@ -509,6 +527,9 @@
                                 </button>
                             </div>
                         </div>
+                        <div class="max-w-4xl mx-auto mt-2 text-xs text-gray-400">
+                             ※問題文をクリックするとテキストを自由に編集できます
+                        </div>
                     </div>
 
                     <!-- 印刷用紙エリア -->
@@ -536,7 +557,6 @@
                             </div>
                         </div>
                         
-                        <!-- Drill ID 削除 -->
                     </div>
                 </div>
             `;
