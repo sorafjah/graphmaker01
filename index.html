@@ -185,7 +185,7 @@
                 switch (type) {
                     case 'read':
                         q = {
-                            text: `「${target.name}」は、何${unit} ですか。`,
+                            text: `「${target.name}」が すきな 人は、何${unit}ですか。`,
                             answer: `${target.value}${unit}`
                         };
                         break;
@@ -202,7 +202,7 @@
                         const itemSumA = selectedItems[idxA];
                         const itemSumB = selectedItems[idxB];
                         q = {
-                            text: `「${itemSumA.name}」と「${itemSumB.name}」を 合わせると 何${unit}になりますか。`,
+                            text: `「${itemSumA.name}」が すきな 人と「${itemSumB.name}」が すきな 人を 合わせると 何${unit}になりますか。`,
                             answer: `${itemSumA.value + itemSumB.value}${unit}`
                         };
                         break;
@@ -214,12 +214,12 @@
                         const itemB = selectedItems[idx2];
                         if (itemA.value >= itemB.value) {
                             q = {
-                                text: `「${itemA.name}」は、「${itemB.name}」より 何${unit} 多いですか。`,
+                                text: `「${itemA.name}」が すきな 人は、「${itemB.name}」が すきな 人より 何${unit} 多いですか。`,
                                 answer: `${itemA.value - itemB.value}${unit}`
                             };
                         } else {
                             q = {
-                                text: `「${itemB.name}」は、「${itemA.name}」より 何${unit} 多いですか。`,
+                                text: `「${itemB.name}」が すきな 人は、「${itemA.name}」が すきな 人より 何${unit} 多いですか。`,
                                 answer: `${itemB.value - itemA.value}${unit}`
                             };
                         }
